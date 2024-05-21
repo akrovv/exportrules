@@ -4,12 +4,13 @@ import (
 	"go/ast"
 	"go/types"
 	"golang.org/x/tools/go/analysis"
+	"strings"
 )
 
 func New() *analysis.Analyzer {
 	return &analysis.Analyzer{
 		Name: "exportes",
-		Doc:  "Doc: uses for find...",
+		Doc:  "Doc: used to find the private fields and methods of structures",
 		Run:  run,
 	}
 }
@@ -21,7 +22,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			if !ok {
 				return true
 			}
-
+			if strings.Contains(ff.Name.String(), "New") {
+				return true
+			}
 			ast.Inspect(ff.Body, checkExport(pass, ff.Recv))
 
 			return true
@@ -32,6 +35,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 func checkExport(pass *analysis.Pass, receiver *ast.FieldList) func(ast.Node) bool {
 	return func(node ast.Node) bool {
+		if checkExportStructFields(pass, node) {
+			return true
+		}
+
 		selectExpr, isSelector := node.(*ast.SelectorExpr)
 		if !isSelector {
 			return true
@@ -48,9 +55,9 @@ func checkExport(pass *analysis.Pass, receiver *ast.FieldList) func(ast.Node) bo
 
 		var message string
 		if selection.Kind() == types.FieldVal {
-			message = "access to unexported field"
+			message = "access to private field"
 		} else {
-			message = "call to unexported method"
+			message = "call to private method"
 		}
 
 		if compareStruct(pass, receiver, pass.TypesInfo.TypeOf(selectExpr.X)) {
@@ -64,6 +71,36 @@ func checkExport(pass *analysis.Pass, receiver *ast.FieldList) func(ast.Node) bo
 		}
 		return true
 	}
+}
+
+func checkExportStructFields(pass *analysis.Pass, node ast.Node) bool {
+	lit, ok := node.(*ast.CompositeLit)
+	if !ok {
+		return false
+	}
+	_, ok = pass.TypesInfo.TypeOf(lit.Type).Underlying().(*types.Struct)
+	if !ok {
+		return false
+	}
+
+	for _, elem := range lit.Elts {
+		kv, ok := elem.(*ast.KeyValueExpr)
+		if !ok {
+			continue
+		}
+		field, ok := kv.Key.(*ast.Ident)
+		if !ok {
+			continue
+		}
+		if !field.IsExported() {
+			pass.Report(analysis.Diagnostic{
+				Pos:     kv.Pos(),
+				Message: "initialization of private field: " + field.Name,
+			})
+		}
+	}
+
+	return true
 }
 
 func compareStruct(pass *analysis.Pass, receiver *ast.FieldList, typeInfo types.Type) bool {
