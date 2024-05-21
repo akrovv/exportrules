@@ -1,6 +1,6 @@
 ## Exportes linter
 
-#### Used for verification using private fields/methods
+#### Used for verification using private fields / methods
 
 You only need to use the public **fields** / **methods** in one package.
 <table>
