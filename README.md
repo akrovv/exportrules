@@ -2,7 +2,7 @@
 
 #### Used for verification using private fields/methods
 
-You only need to use the public ** fields** / **methods** in one package.
+You only need to use the public **fields** / **methods** in one package.
 <table>
 <thead><tr><th>Bad Field</th><th>Bad Method</th></tr></thead>
 <tbody>
