@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+//nolint:gochecknoglobals
+var (
+	skipForTest bool
+)
+
 func New() *analysis.Analyzer {
 	return &analysis.Analyzer{
 		Name: "exportes",
@@ -23,6 +28,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 			if strings.Contains(ff.Name.String(), "New") {
+				return true
+			}
+			if skipForTest {
 				return true
 			}
 			ast.Inspect(ff.Body, checkExport(pass, ff.Recv))
