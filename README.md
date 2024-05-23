@@ -1,6 +1,6 @@
 ## Exportes linter
 
-#### Used for verification using private fields / methods
+#### Uses for verification using private **fields** / **methods**
 
 You only need to use the public **fields** / **methods** in one package.
 <table>
@@ -43,5 +43,5 @@ func setter[T any](user User, value T) {
 ### How to start
 * git clone __[link]__
 * go build -buildmode=plugin cmd/exportes/main.go
-* __[!!! you need compiled file from https://github.com/golangci/golangci-lint (make build)]__
+* __[!!! you need compiled file from https://github.com/golangci/golangci-lint (make build_plugin)]__
 * ./golangci-lint -c golangci.yml run __[source code]__
