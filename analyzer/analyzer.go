@@ -15,7 +15,7 @@ var (
 func New() *analysis.Analyzer {
 	return &analysis.Analyzer{
 		Name: "exportes",
-		Doc:  "Doc: used to find the private fields and methods of structures",
+		Doc:  "Doc: uses for verification using private fields / methods",
 		Run:  run,
 	}
 }
@@ -27,12 +27,15 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			if !ok {
 				return true
 			}
+
 			if strings.Contains(ff.Name.String(), "New") {
 				return true
 			}
+
 			if skipForTest {
 				return true
 			}
+
 			ast.Inspect(ff.Body, checkExport(pass, ff.Recv))
 
 			return true
