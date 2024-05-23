@@ -86,7 +86,12 @@ func checkExportStructFields(pass *analysis.Pass, node ast.Node) bool {
 	if !ok {
 		return false
 	}
-	_, ok = pass.TypesInfo.TypeOf(lit.Type).Underlying().(*types.Struct)
+
+	t := pass.TypesInfo.TypeOf(lit.Type)
+	if t == nil {
+		return false
+	}
+	_, ok = t.Underlying().(*types.Struct)
 	if !ok {
 		return false
 	}
