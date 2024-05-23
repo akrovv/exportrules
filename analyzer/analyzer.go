@@ -47,8 +47,8 @@ func checkExport(pass *analysis.Pass, receiver *ast.FieldList) func(ast.Node) bo
 			return true
 		}
 
-		selectExpr, isSelector := node.(*ast.SelectorExpr)
-		if !isSelector {
+		selectExpr, ok := node.(*ast.SelectorExpr)
+		if !ok {
 			return true
 		}
 
@@ -56,7 +56,6 @@ func checkExport(pass *analysis.Pass, receiver *ast.FieldList) func(ast.Node) bo
 		if !ok {
 			return true
 		}
-
 		if selection.Kind() != types.MethodVal && selection.Kind() != types.FieldVal {
 			return true
 		}
@@ -71,6 +70,7 @@ func checkExport(pass *analysis.Pass, receiver *ast.FieldList) func(ast.Node) bo
 		if compareStruct(pass, receiver, pass.TypesInfo.TypeOf(selectExpr.X)) {
 			return true
 		}
+
 		if !selectExpr.Sel.IsExported() {
 			pass.Report(analysis.Diagnostic{
 				Pos:     selectExpr.Pos(),
