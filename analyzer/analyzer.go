@@ -14,7 +14,7 @@ var (
 
 func New() *analysis.Analyzer {
 	return &analysis.Analyzer{
-		Name: "exportes",
+		Name: "exportrules",
 		Doc:  "Doc: uses for verification using private fields / methods",
 		Run:  run,
 	}
@@ -28,11 +28,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			if strings.Contains(ff.Name.String(), "New") {
+			if skipForTest {
 				return true
 			}
 
-			if skipForTest {
+			if strings.HasPrefix(ff.Name.Name, "New") {
+				ast.Inspect(ff.Body, checkNewFunc(pass))
 				return true
 			}
 
@@ -57,9 +58,6 @@ func checkExport(pass *analysis.Pass, receiver *ast.FieldList) func(ast.Node) bo
 
 		selection, ok := pass.TypesInfo.Selections[selectExpr]
 		if !ok {
-			return true
-		}
-		if selection.Kind() != types.MethodVal && selection.Kind() != types.FieldVal {
 			return true
 		}
 
@@ -104,10 +102,12 @@ func checkExportStructFields(pass *analysis.Pass, node ast.Node) bool {
 		if !ok {
 			continue
 		}
+
 		field, ok := kv.Key.(*ast.Ident)
 		if !ok {
 			continue
 		}
+
 		if !field.IsExported() {
 			pass.Report(analysis.Diagnostic{
 				Pos:     kv.Pos(),
@@ -117,6 +117,63 @@ func checkExportStructFields(pass *analysis.Pass, node ast.Node) bool {
 	}
 
 	return true
+}
+
+func checkNewFunc(pass *analysis.Pass) func(ast.Node) bool {
+	return func(node ast.Node) bool {
+		switch n := node.(type) {
+		case *ast.CompositeLit:
+			for _, elt := range n.Elts {
+				kv, ok := elt.(*ast.KeyValueExpr)
+				if !ok {
+					continue
+				}
+				checkKeyValue(pass, kv)
+			}
+		case *ast.AssignStmt:
+			if len(n.Lhs) != len(n.Rhs) {
+				return true
+			}
+			for i, rhs := range n.Rhs {
+				cl, ok := rhs.(*ast.CompositeLit)
+				if !ok {
+					continue
+				}
+
+				ident, ok := cl.Type.(*ast.Ident)
+				if !ok || ident.IsExported() {
+					continue
+				}
+
+				if selExpr, ok := n.Lhs[i].(*ast.SelectorExpr); ok {
+					if xIdent, ok := selExpr.X.(*ast.Ident); ok {
+						pass.Reportf(selExpr.Pos(), "private field %q should not be initialized with a composite literal", xIdent.Name+"."+selExpr.Sel.Name)
+					}
+				}
+			}
+		}
+
+		return true
+	}
+}
+
+func checkKeyValue(pass *analysis.Pass, kv *ast.KeyValueExpr) {
+	key, ok := kv.Key.(*ast.Ident)
+	if !ok {
+		return
+	}
+
+	value, ok := kv.Value.(*ast.CompositeLit)
+	if !ok {
+		return
+	}
+
+	valueIdent, ok := value.Type.(*ast.Ident)
+	if !ok || valueIdent.IsExported() {
+		return
+	}
+
+	pass.Reportf(kv.Pos(), "private field %q should not be initialized with a composite literal", key.Name)
 }
 
 func compareStruct(pass *analysis.Pass, receiver *ast.FieldList, typeInfo types.Type) bool {

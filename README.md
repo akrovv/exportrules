@@ -1,4 +1,4 @@
-## Exportes linter
+## Exportrules linter
 
 #### Uses for verification using private **fields** / **methods**
 
@@ -42,6 +42,6 @@ func setter[T any](user User, value T) {
 
 ### How to start
 * git clone __[link]__
-* go build -buildmode=plugin cmd/exportes/main.go
-* __[!!! you need compiled file from https://github.com/golangci/golangci-lint (make build_plugin)]__
+* make build_plugin 
+* __[!!! you need compiled file from https://github.com/golangci/golangci-lint]__
 * ./golangci-lint -c golangci.yml run __[source code]__

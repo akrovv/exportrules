@@ -27,3 +27,13 @@ func TestNegative(t *testing.T) {
 	testdata := filepath.Join(filepath.Dir(wd), "testdata")
 	analysistest.Run(t, testdata, New(), "negative")
 }
+
+func TestN(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	testdata := filepath.Join(filepath.Dir(wd), "testdata")
+	analysistest.Run(t, testdata, New(), "smt")
+}
