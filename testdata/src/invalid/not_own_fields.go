@@ -1,4 +1,4 @@
-package negative
+package invalid
 
 func NewM() Men {
 	return Men{l: 10}

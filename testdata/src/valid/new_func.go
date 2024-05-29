@@ -1,6 +1,10 @@
-package negative
+package valid
 
 type bio struct {
+	s string
+}
+
+type Fio struct {
 	s string
 }
 
@@ -11,12 +15,13 @@ func NewB() bio {
 type name struct {
 	age int
 	bio bio
+	fio Fio
 }
 
 func NewN() name {
 	n := name{
 		age: 1,
-		bio: bio{},
+		bio: NewB(),
 	}
 
 	return n
@@ -25,7 +30,7 @@ func NewN() name {
 func NewNN() name {
 	return name{
 		age: 1,
-		bio: bio{},
+		bio: NewB(),
 	}
 }
 
@@ -34,7 +39,14 @@ func NewNNN() name {
 		age: 1,
 	}
 
-	n.bio = bio{}
+	n.bio = NewB()
 
 	return n
+}
+
+func NewNNNN() name {
+	return name{
+		age: 1,
+		fio: Fio{},
+	}
 }

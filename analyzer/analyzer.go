@@ -7,11 +7,6 @@ import (
 	"strings"
 )
 
-//nolint:gochecknoglobals
-var (
-	skipForTest bool
-)
-
 func New() *analysis.Analyzer {
 	return &analysis.Analyzer{
 		Name: "exportrules",
@@ -28,18 +23,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				return true
 			}
 
-			if skipForTest {
-				return true
-			}
-
 			if strings.HasPrefix(ff.Name.Name, "New") {
 				ast.Inspect(ff.Body, checkNewFunc(pass))
-				return true
+				return false
 			}
 
 			ast.Inspect(ff.Body, checkExport(pass, ff.Recv))
-
-			return true
+			return false
 		})
 	}
 	return nil, nil

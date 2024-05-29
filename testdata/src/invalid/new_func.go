@@ -1,10 +1,6 @@
-package tests
+package invalid
 
 type bio struct {
-	s string
-}
-
-type Fio struct {
 	s string
 }
 
@@ -15,13 +11,12 @@ func NewB() bio {
 type name struct {
 	age int
 	bio bio
-	fio Fio
 }
 
 func NewN() name {
 	n := name{
 		age: 1,
-		bio: NewB(),
+		bio: bio{},
 	}
 
 	return n
@@ -30,7 +25,7 @@ func NewN() name {
 func NewNN() name {
 	return name{
 		age: 1,
-		bio: NewB(),
+		bio: bio{},
 	}
 }
 
@@ -39,14 +34,7 @@ func NewNNN() name {
 		age: 1,
 	}
 
-	n.bio = NewB()
+	n.bio = bio{}
 
 	return n
-}
-
-func NewNNNN() name {
-	return name{
-		age: 1,
-		fio: Fio{},
-	}
 }

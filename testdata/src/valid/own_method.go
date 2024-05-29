@@ -1,4 +1,4 @@
-package tests
+package valid
 
 type Person struct{}
 

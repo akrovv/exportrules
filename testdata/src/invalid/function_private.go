@@ -1,4 +1,4 @@
-package negative
+package invalid
 
 import "fmt"
 
